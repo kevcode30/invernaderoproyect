@@ -1,0 +1,7 @@
+{
+  "name": "invernadero-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

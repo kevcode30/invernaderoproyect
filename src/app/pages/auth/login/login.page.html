@@ -1,0 +1,156 @@
+<!-- src/app/pages/auth/login/login.page.html -->
+<ion-content class="login-page">
+  <!-- Imagen de fondo con título -->
+  <div class="bg-image">
+    <h1 class="title">InverGrow</h1>
+  </div>
+
+  <!-- Card blanco con formulario -->
+  <div class="login-card">
+    <!-- Toggle Login/Registro -->
+    <div class="toggle-container">
+      <div class="toggle-slider" [style.transform]="isLoginMode ? 'translateX(0)' : 'translateX(100%)'"></div>
+      <div class="toggle-option" [class.active]="isLoginMode" (click)="setLoginMode(true)">
+        Inicia Sesión
+      </div>
+      <div class="toggle-option" [class.active]="!isLoginMode" (click)="setLoginMode(false)">
+        Regístrate
+      </div>
+    </div>
+
+    <!-- Formulario de Login -->
+    <div *ngIf="isLoginMode">
+      <div class="subtitle-container">
+        <h2 class="subtitle">Bienvenido de nuevo</h2>
+        <div class="subtitle-line"></div>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        <!-- Email -->
+        <div class="input-container">
+          <ion-input
+            type="email"
+            formControlName="email"
+            placeholder="Correo electrónico"
+            autocomplete="email"
+          ></ion-input>
+          <div class="input-line"></div>
+          <ion-text color="danger" *ngIf="email?.invalid && email?.touched">
+            {{ getEmailErrorMessage() }}
+          </ion-text>
+        </div>
+
+        <!-- Password -->
+        <div class="input-container">
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Contraseña"
+            autocomplete="current-password"
+          ></ion-input>
+          <ion-button
+            fill="clear"
+            class="eye-button"
+            (click)="togglePasswordVisibility()"
+          >
+            <ion-icon
+              slot="icon-only"
+              [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            ></ion-icon>
+          </ion-button>
+          <div class="input-line"></div>
+          <ion-text color="danger" *ngIf="password?.invalid && password?.touched">
+            {{ getPasswordErrorMessage() }}
+          </ion-text>
+        </div>
+
+        <!-- Olvidaste contraseña -->
+        <a class="forgot-password" (click)="goToForgotPassword()">
+          ¿Olvidaste tu contraseña?
+        </a>
+
+        <!-- Botón Submit -->
+        <ion-button
+          expand="block"
+          type="submit"
+          class="submit-button"
+          [disabled]="loginForm.invalid || isLoading"
+        >
+          Iniciar Sesión
+        </ion-button>
+      </form>
+    </div>
+
+    <!-- Formulario de Registro -->
+    <div *ngIf="!isLoginMode">
+      <div class="subtitle-container">
+        <h2 class="subtitle">Crear cuenta nueva</h2>
+        <div class="subtitle-line"></div>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+        <!-- Nombre -->
+        <div class="input-container">
+          <ion-input
+            type="text"
+            formControlName="displayName"
+            placeholder="Nombre completo"
+            autocomplete="name"
+          ></ion-input>
+          <div class="input-line"></div>
+          <ion-text color="danger" *ngIf="displayName?.invalid && displayName?.touched">
+            El nombre es requerido (mínimo 2 caracteres)
+          </ion-text>
+        </div>
+
+        <!-- Email -->
+        <div class="input-container">
+          <ion-input
+            type="email"
+            formControlName="email"
+            placeholder="Correo electrónico"
+            autocomplete="email"
+          ></ion-input>
+          <div class="input-line"></div>
+          <ion-text color="danger" *ngIf="registerEmail?.invalid && registerEmail?.touched">
+            {{ getRegisterEmailErrorMessage() }}
+          </ion-text>
+        </div>
+
+        <!-- Password -->
+        <div class="input-container">
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Contraseña"
+            autocomplete="new-password"
+          ></ion-input>
+          <ion-button
+            fill="clear"
+            class="eye-button"
+            (click)="togglePasswordVisibility()"
+          >
+            <ion-icon
+              slot="icon-only"
+              [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            ></ion-icon>
+          </ion-button>
+          <div class="input-line"></div>
+          <ion-text color="danger" *ngIf="registerPassword?.invalid && registerPassword?.touched">
+            {{ getRegisterPasswordErrorMessage() }}
+          </ion-text>
+        </div>
+
+        <!-- Botón Submit -->
+        <ion-button
+          expand="block"
+          type="submit"
+          class="submit-button"
+          [disabled]="registerForm.invalid || isLoading"
+        >
+          Crear Cuenta
+        </ion-button>
+      </form>
+    </div>
+  </div>
+</ion-content>
