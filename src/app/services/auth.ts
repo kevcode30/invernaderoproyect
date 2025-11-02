@@ -55,33 +55,46 @@ export class AuthService {
   }
 
   // RF.2 - Registro de usuario
-  async register(email: string, password: string, displayName: string): Promise<User> {
-    try {
-      // Validar datos
-      this.validateCredentials(email, password);
-      this.validateDisplayName(displayName);
+async register(email: string, password: string, displayName: string): Promise<User> {
+  try {
+    // Validar datos
+    this.validateCredentials(email, password);
+    this.validateDisplayName(displayName);
 
-      // Crear usuario en API
-      const userData = await this.authApi.register({
-        email,
-        password,
-        displayName,
-        role: UserRole.USER
-      });
+    // Crear usuario en la API
+    const userData = await this.authApi.register({
+      email,
+      password,
+      displayName,
+      role: UserRole.USER
+    });
 
-      const user = User.fromJSON(userData);
-      
-      // Guardar en storage
-      await this.storage.set(this.USER_STORAGE_KEY, user.toJSON());
-      this.currentUserSubject.next(user);
+    // Crear instancia del modelo User
+    const user = User.fromJSON({
+      ...userData,
+      createdAt: new Date(), // ✅ Aseguramos que haya una fecha válida
+      updatedAt: new Date()
+    });
 
-      return user;
+    // Guardar en storage
+    await this.storage.set(this.USER_STORAGE_KEY, user.toJSON());
+    this.currentUserSubject.next(user);
 
-    } catch (error: any) {
-      console.error('Error en registro:', error);
-      throw new Error('Error al crear la cuenta. Intente nuevamente.');
+    return user;
+
+  } catch (error: any) {
+    console.error('Error en registro:', error);
+
+    // Si el error es de validación personalizada (por ejemplo, contraseña inválida)
+    if (error.message?.includes('contraseña') || error.message?.includes('Correo')) {
+      throw error;
     }
+
+    //Si viene de Firebase u otro origen, mostramos mensaje genérico
+    throw new Error('Error al crear la cuenta. Intente nuevamente.');
   }
+}
+
 
   // RF.19 - Recuperación de contraseña
   async resetPassword(email: string): Promise<void> {

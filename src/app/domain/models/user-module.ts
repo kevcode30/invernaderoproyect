@@ -46,18 +46,21 @@ export class User implements IUser {
   greenhouseIds?: string[];
 
   constructor(data: IUser) {
-    this.uid = data.uid;
-    this.email = data.email;
-    this.displayName = data.displayName;
-    this.phoneNumber = data.phoneNumber;
-    this.role = data.role;
-    this.photoURL = data.photoURL;
-    this.createdAt = data.createdAt;
-    this.updatedAt = data.updatedAt;
-    this.lastLogin = data.lastLogin;
-    this.preferences = data.preferences || this.getDefaultPreferences();
-    this.greenhouseIds = data.greenhouseIds || [];
-  }
+  this.uid = data.uid;
+  this.email = data.email;
+  this.displayName = data.displayName;
+  this.phoneNumber = data.phoneNumber;
+  this.role = data.role;
+  this.photoURL = data.photoURL;
+  
+  // 🔥 Si no viene definida, usa la fecha actual
+  this.createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
+  
+  this.updatedAt = data.updatedAt ? new Date(data.updatedAt) : undefined;
+  this.lastLogin = data.lastLogin ? new Date(data.lastLogin) : undefined;
+  this.preferences = data.preferences || this.getDefaultPreferences();
+  this.greenhouseIds = data.greenhouseIds || [];
+}
 
   // Métodos de lógica de negocio
   isAdmin(): boolean {
