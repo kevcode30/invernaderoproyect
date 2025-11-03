@@ -19,7 +19,45 @@ export class AuthService {
   ) {
     this.currentUserSubject = new BehaviorSubject<User | null>(null);
     this.currentUser$ = this.currentUserSubject.asObservable();
-    this.loadUserFromStorage();
+    this.initializeAuth();
+  }
+
+  // Inicializar autenticación
+  private async initializeAuth(): Promise<void> {
+    // Primero intentar cargar desde storage
+    await this.loadUserFromStorage();
+    
+    // Luego verificar si Firebase tiene un usuario activo
+    await this.syncWithFirebase();
+  }
+
+  // Sincronizar con Firebase
+  private async syncWithFirebase(): Promise<void> {
+    try {
+      const firebaseUser = this.authApi.getCurrentFirebaseUser();
+      
+      if (firebaseUser) {
+        // Si hay usuario en Firebase pero no en nuestro estado
+        if (!this.currentUserSubject.value) {
+          const userData = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            displayName: firebaseUser.displayName || 'Usuario',
+            role: UserRole.USER,
+            photoURL: firebaseUser.photoURL,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          const user = User.fromJSON(userData);
+          await this.storage.set(this.USER_STORAGE_KEY, user.toJSON());
+          this.currentUserSubject.next(user);
+          console.log('Usuario sincronizado desde Firebase');
+        }
+      }
+    } catch (error) {
+      console.error('Error al sincronizar con Firebase:', error);
+    }
   }
 
   // RF.1 - Autentificar usuario al iniciar sesión
@@ -31,14 +69,19 @@ export class AuthService {
       // Llamar a la API
       const userData = await this.authApi.login(email, password);
 
-      // Crear instancia de User
-      const user = User.fromJSON(userData);
+      // Crear instancia de User con fechas válidas
+      const user = User.fromJSON({
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
       user.updateLastLogin(); // RF.81 - Registro de ingresos
 
       // Guardar en storage local (RF.33 - Acceso offline)
       await this.storage.set(this.USER_STORAGE_KEY, user.toJSON());
 
-      // Actualizar estado
+      // Actualizar estado - esto dispara el observable
       this.currentUserSubject.next(user);
 
       console.log('Login exitoso:', user.getDisplayName());
@@ -55,46 +98,43 @@ export class AuthService {
   }
 
   // RF.2 - Registro de usuario
-async register(email: string, password: string, displayName: string): Promise<User> {
-  try {
-    // Validar datos
-    this.validateCredentials(email, password);
-    this.validateDisplayName(displayName);
+  async register(email: string, password: string, displayName: string): Promise<User> {
+    try {
+      // Validar datos
+      this.validateCredentials(email, password);
+      this.validateDisplayName(displayName);
 
-    // Crear usuario en la API
-    const userData = await this.authApi.register({
-      email,
-      password,
-      displayName,
-      role: UserRole.USER
-    });
+      // Crear usuario en la API
+      const userData = await this.authApi.register({
+        email,
+        password,
+        displayName,
+        role: UserRole.USER
+      });
 
-    // Crear instancia del modelo User
-    const user = User.fromJSON({
-      ...userData,
-      createdAt: new Date(), // ✅ Aseguramos que haya una fecha válida
-      updatedAt: new Date()
-    });
+      // Crear instancia del modelo User
+      const user = User.fromJSON({
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
 
-    // Guardar en storage
-    await this.storage.set(this.USER_STORAGE_KEY, user.toJSON());
-    this.currentUserSubject.next(user);
+      // Guardar en storage
+      await this.storage.set(this.USER_STORAGE_KEY, user.toJSON());
+      this.currentUserSubject.next(user);
 
-    return user;
+      return user;
 
-  } catch (error: any) {
-    console.error('Error en registro:', error);
+    } catch (error: any) {
+      console.error('Error en registro:', error);
 
-    // Si el error es de validación personalizada (por ejemplo, contraseña inválida)
-    if (error.message?.includes('contraseña') || error.message?.includes('Correo')) {
-      throw error;
+      if (error.message?.includes('contraseña') || error.message?.includes('Correo')) {
+        throw error;
+      }
+
+      throw new Error('Error al crear la cuenta. Intente nuevamente.');
     }
-
-    //Si viene de Firebase u otro origen, mostramos mensaje genérico
-    throw new Error('Error al crear la cuenta. Intente nuevamente.');
   }
-}
-
 
   // RF.19 - Recuperación de contraseña
   async resetPassword(email: string): Promise<void> {
@@ -165,7 +205,7 @@ async register(email: string, password: string, displayName: string): Promise<Us
       if (userData) {
         const user = User.fromJSON(userData);
         this.currentUserSubject.next(user);
-        console.log('Usuario cargado desde storage');
+        console.log('Usuario cargado desde storage:', user.getDisplayName());
       }
     } catch (error) {
       console.error('Error al cargar usuario:', error);

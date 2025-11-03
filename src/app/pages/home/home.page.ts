@@ -1,18 +1,22 @@
 // src/app/pages/home/home.page.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, NavController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-standalone:false
+  standalone: false
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, OnDestroy {
   userName: string = 'Usuario';
   userEmail: string = '';
+  
+  // Subscription para limpiar al destruir
+  private userSubscription?: Subscription;
   
   // Datos simulados de sensores (RF.10, RF.14)
   sensorData = {
@@ -39,7 +43,23 @@ export class HomePage implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Suscribirse al observable del usuario
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.userName = user.getDisplayName();
+        this.userEmail = user.email;
+      }
+    });
+
+    // Cargar datos iniciales
     this.loadUserData();
+  }
+
+  ngOnDestroy() {
+    // Limpiar suscripción
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 
   // Cargar datos del usuario (RF.3)
