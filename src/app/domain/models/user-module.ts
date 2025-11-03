@@ -104,21 +104,27 @@ export class User implements IUser {
   }
 
   // Serializar para guardar en BD
-  toJSON(): any {
-    return {
-      uid: this.uid,
-      email: this.email,
-      displayName: this.displayName,
-      phoneNumber: this.phoneNumber,
-      role: this.role,
-      photoURL: this.photoURL,
-      createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt?.toISOString(),
-      lastLogin: this.lastLogin?.toISOString(),
-      preferences: this.preferences,
-      greenhouseIds: this.greenhouseIds
-    };
-  }
+ toJSON(): any {
+  return {
+    uid: this.uid,
+    email: this.email,
+    displayName: this.displayName,
+    phoneNumber: this.phoneNumber,
+    role: this.role,
+    photoURL: this.photoURL,
+    createdAt: this.createdAt instanceof Date && !isNaN(this.createdAt.getTime())
+      ? this.createdAt.toISOString()
+      : new Date().toISOString(),
+    updatedAt: this.updatedAt instanceof Date && !isNaN(this.updatedAt.getTime())
+      ? this.updatedAt.toISOString()
+      : null,
+    lastLogin: this.lastLogin instanceof Date && !isNaN(this.lastLogin.getTime())
+      ? this.lastLogin.toISOString()
+      : null,
+    preferences: this.preferences,
+    greenhouseIds: this.greenhouseIds
+  };
+}
 
   // Crear desde JSON
   static fromJSON(json: any): User {

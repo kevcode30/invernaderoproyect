@@ -1,1 +1,217 @@
-<h1></h1>
+<!-- src/app/pages/home/home.page.html -->
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="custom-toolbar">
+    <ion-title class="toolbar-title">
+      <ion-icon name="leaf-outline"></ion-icon>
+      InvernaderoApp
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="goToProfile()">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="home-page">
+  
+  <!-- Pull to refresh (RF.11) -->
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Header con saludo -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1 class="welcome-title">Hola, {{ userName }}</h1>
+      <p class="welcome-subtitle">{{ userEmail }}</p>
+    </div>
+  </div>
+
+  <!-- Card principal con datos -->
+  <div class="main-card">
+    
+    <!-- RF.14 - Panel de estado general -->
+    <div class="status-section">
+      <div class="section-header">
+        <h2 class="section-title">Estado General</h2>
+        <ion-icon name="pulse-outline" class="title-icon"></ion-icon>
+      </div>
+      <div class="section-line"></div>
+
+      <!-- RF.10 - Datos de sensores -->
+      <div class="sensors-grid">
+        
+        <!-- Temperatura -->
+        <div class="sensor-card">
+          <ion-icon 
+            name="thermometer-outline" 
+            [color]="getSensorColor(sensorData.temperature, 'temperature')">
+          </ion-icon>
+          <div class="sensor-info">
+            <p class="sensor-label">Temperatura</p>
+            <p class="sensor-value">{{ sensorData.temperature }}°C</p>
+          </div>
+        </div>
+
+        <!-- Humedad -->
+        <div class="sensor-card">
+          <ion-icon 
+            name="water-outline" 
+            [color]="getSensorColor(sensorData.humidity, 'humidity')">
+          </ion-icon>
+          <div class="sensor-info">
+            <p class="sensor-label">Humedad</p>
+            <p class="sensor-value">{{ sensorData.humidity }}%</p>
+          </div>
+        </div>
+
+        <!-- Luz -->
+        <div class="sensor-card">
+          <ion-icon name="sunny-outline" color="warning"></ion-icon>
+          <div class="sensor-info">
+            <p class="sensor-label">Luz</p>
+            <p class="sensor-value">{{ sensorData.light }}%</p>
+          </div>
+        </div>
+
+        <!-- Humedad del suelo -->
+        <div class="sensor-card">
+          <ion-icon name="leaf-outline" color="success"></ion-icon>
+          <div class="sensor-info">
+            <p class="sensor-label">H. Suelo</p>
+            <p class="sensor-value">{{ sensorData.soilMoisture }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RF.36, RF.37 - Controles manuales -->
+    <div class="controls-section">
+      <div class="section-header">
+        <h2 class="section-title">Control Manual</h2>
+        <ion-icon name="settings-outline" class="title-icon"></ion-icon>
+      </div>
+      <div class="section-line"></div>
+
+      <div class="controls-grid">
+        
+        <!-- Riego -->
+        <div class="control-item" (click)="toggleControl('irrigation')">
+          <ion-icon 
+            [name]="controls.irrigation ? 'water' : 'water-outline'" 
+            [color]="controls.irrigation ? 'primary' : 'medium'">
+          </ion-icon>
+          <p class="control-label">Riego</p>
+          <div 
+            class="control-status" 
+            [class.active]="controls.irrigation">
+            {{ controls.irrigation ? 'ON' : 'OFF' }}
+          </div>
+        </div>
+
+        <!-- Ventilación -->
+        <div class="control-item" (click)="toggleControl('ventilation')">
+          <ion-icon 
+            [name]="controls.ventilation ? 'reload' : 'reload-outline'" 
+            [color]="controls.ventilation ? 'success' : 'medium'">
+          </ion-icon>
+          <p class="control-label">Ventilación</p>
+          <div 
+            class="control-status" 
+            [class.active]="controls.ventilation">
+            {{ controls.ventilation ? 'ON' : 'OFF' }}
+          </div>
+        </div>
+
+        <!-- Iluminación -->
+        <div class="control-item" (click)="toggleControl('lighting')">
+          <ion-icon 
+            [name]="controls.lighting ? 'bulb' : 'bulb-outline'" 
+            [color]="controls.lighting ? 'warning' : 'medium'">
+          </ion-icon>
+          <p class="control-label">Iluminación</p>
+          <div 
+            class="control-status" 
+            [class.active]="controls.lighting">
+            {{ controls.lighting ? 'ON' : 'OFF' }}
+          </div>
+        </div>
+
+        <!-- Calefacción -->
+        <div class="control-item" (click)="toggleControl('heating')">
+          <ion-icon 
+            [name]="controls.heating ? 'flame' : 'flame-outline'" 
+            [color]="controls.heating ? 'danger' : 'medium'">
+          </ion-icon>
+          <p class="control-label">Calefacción</p>
+          <div 
+            class="control-status" 
+            [class.active]="controls.heating">
+            {{ controls.heating ? 'ON' : 'OFF' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="quick-access-section">
+      <div class="section-header">
+        <h2 class="section-title">Accesos Rápidos</h2>
+        <ion-icon name="apps-outline" class="title-icon"></ion-icon>
+      </div>
+      <div class="section-line"></div>
+
+      <div class="quick-actions">
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          class="action-button"
+          (click)="goToSensors()">
+          <ion-icon slot="start" name="speedometer-outline"></ion-icon>
+          Ver Sensores
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          class="action-button"
+          (click)="goToReports()">
+          <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
+          Reportes
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          class="action-button"
+          (click)="goToAlerts()">
+          <ion-icon slot="start" name="notifications-outline"></ion-icon>
+          Alertas
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          class="action-button"
+          (click)="goToSettings()">
+          <ion-icon slot="start" name="construct-outline"></ion-icon>
+          Configuración
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Botón de cerrar sesión -->
+    <ion-button 
+      expand="block" 
+      color="danger" 
+      fill="clear"
+      class="logout-button"
+      (click)="logout()">
+      <ion-icon slot="start" name="log-out-outline"></ion-icon>
+      Cerrar Sesión
+    </ion-button>
+
+  </div>
+
+</ion-content>

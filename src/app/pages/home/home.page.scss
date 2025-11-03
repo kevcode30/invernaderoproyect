@@ -1,0 +1,238 @@
+// src/app/pages/home/home.page.scss
+.home-page {
+  --background: #f5f5f5;
+  background: #f5f5f5;
+}
+
+/* Header personalizado */
+.custom-toolbar {
+  --background: #0ea701;
+  --color: white;
+}
+
+.toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Berkshire Swash', cursive;
+  font-size: 1.3rem;
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* Sección de bienvenida */
+.welcome-section {
+  width: 100%;
+  background: linear-gradient(135deg, #0ea701 0%, #0a7700 100%);
+  padding: 30px 20px 50px 20px;
+  position: relative;
+}
+
+.welcome-content {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.welcome-title {
+  font-family: 'Berkshire Swash', cursive;
+  color: white;
+  font-size: 1.8rem;
+  margin: 0 0 5px 0;
+}
+
+.welcome-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Card principal */
+.main-card {
+  position: relative;
+  margin: -30px 20px 20px 20px;
+  background: white;
+  border-radius: 30px;
+  padding: 25px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Headers de sección */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-title {
+  font-family: 'Berkshire Swash', cursive;
+  color: #333;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.title-icon {
+  font-size: 1.3rem;
+  color: #0ea701;
+}
+
+.section-line {
+  height: 1px;
+  background: #000000;
+  margin-bottom: 20px;
+}
+
+/* Status Section - Sensores */
+.status-section {
+  margin-bottom: 30px;
+}
+
+.sensors-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.sensor-card {
+  background: #f8f8f8;
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  ion-icon {
+    font-size: 2rem;
+  }
+}
+
+.sensor-info {
+  flex: 1;
+}
+
+.sensor-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 3px 0;
+}
+
+.sensor-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+/* Controls Section */
+.controls-section {
+  margin-bottom: 30px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.control-item {
+  background: #f8f8f8;
+  border-radius: 15px;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: #efefef;
+  }
+
+  ion-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+  }
+}
+
+.control-label {
+  font-size: 0.9rem;
+  color: #333;
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+.control-status {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background: #ddd;
+  color: #666;
+  margin-top: 5px;
+
+  &.active {
+    background: #0ea701;
+    color: white;
+  }
+}
+
+/* Quick Access Section */
+.quick-access-section {
+  margin-bottom: 20px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-button {
+  --border-color: #0ea701;
+  --color: #0ea701;
+  --border-radius: 25px;
+  text-transform: none;
+  font-weight: 500;
+
+  &:active {
+    --background: rgba(14, 167, 1, 0.1);
+  }
+}
+
+/* Logout Button */
+.logout-button {
+  margin-top: 20px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .main-card {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .sensors-grid,
+  .controls-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .quick-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    ion-button {
+      flex: 1;
+      min-width: calc(50% - 5px);
+    }
+  }
+}

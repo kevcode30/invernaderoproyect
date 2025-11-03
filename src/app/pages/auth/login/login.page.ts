@@ -8,7 +8,6 @@ import { AuthService } from '../../../services/auth';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
