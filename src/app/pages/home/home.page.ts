@@ -14,11 +14,10 @@ import { Subscription } from 'rxjs';
 export class HomePage implements OnInit, OnDestroy {
   userName: string = 'Usuario';
   userEmail: string = '';
+  isLoading: boolean = true;
   
-  // Subscription para limpiar al destruir
   private userSubscription?: Subscription;
   
-  // Datos simulados de sensores (RF.10, RF.14)
   sensorData = {
     temperature: 24.5,
     humidity: 68,
@@ -26,7 +25,6 @@ export class HomePage implements OnInit, OnDestroy {
     soilMoisture: 52
   };
 
-  // Estados de control (RF.36, RF.37)
   controls = {
     irrigation: false,
     ventilation: false,
@@ -42,36 +40,68 @@ export class HomePage implements OnInit, OnDestroy {
     private toastCtrl: ToastController
   ) {}
 
-  ngOnInit() {
-    // Suscribirse al observable del usuario
-    this.userSubscription = this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        this.userName = user.getDisplayName();
-        this.userEmail = user.email;
+  async ngOnInit() {
+    console.log('HomePage ngOnInit - Iniciando carga');
+    
+    await this.authService.waitForAuthReady();
+    
+    const user = this.authService.getCurrentUser();
+    
+    if (!user) {
+      console.warn('No hay usuario autenticado, redirigiendo a login');
+      await this.router.navigate(['/auth/login'], { replaceUrl: true });
+      return;
+    }
+
+    console.log('Usuario encontrado:', user.getDisplayName());
+
+    this.userSubscription = this.authService.currentUser$.subscribe(userData => {
+      if (userData) {
+        console.log('Usuario actualizado en subscription:', userData.getDisplayName());
+        this.userName = userData.getDisplayName();
+        this.userEmail = userData.email;
+        this.isLoading = false;
+      } else {
+        console.warn('Usuario null en subscription');
       }
     });
 
-    // Cargar datos iniciales
-    this.loadUserData();
+    await this.loadUserData();
+    
+    console.log('HomePage carga completa');
   }
 
   ngOnDestroy() {
-    // Limpiar suscripción
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
   }
 
-  // Cargar datos del usuario (RF.3)
-  loadUserData() {
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.userName = user.getDisplayName();
-      this.userEmail = user.email;
+  async loadUserData() {
+    try {
+      let user = this.authService.getCurrentUser();
+      
+      if (!user) {
+        console.log('Esperando usuario...');
+        user = await this.authService.waitForUser();
+      }
+      
+      if (user) {
+        console.log('Datos de usuario cargados:', user.getDisplayName());
+        this.userName = user.getDisplayName();
+        this.userEmail = user.email;
+        this.isLoading = false;
+      } else {
+        console.error('No se pudo cargar el usuario');
+        await this.router.navigate(['/auth/login'], { replaceUrl: true });
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del usuario:', error);
+      this.isLoading = false;
+      await this.router.navigate(['/auth/login'], { replaceUrl: true });
     }
   }
 
-  // RF.36, RF.37 - Control manual de dispositivos
   async toggleControl(controlName: 'irrigation' | 'ventilation' | 'lighting' | 'heating') {
     const isActive = this.controls[controlName];
     const actionText = isActive ? 'desactivar' : 'activar';
@@ -108,32 +138,32 @@ export class HomePage implements OnInit, OnDestroy {
     return names[control] || control;
   }
 
-  // Navegación
+  // RUTAS CORREGIDAS
   goToSensors() {
-    this.router.navigate(['/sensors']);
+    this.router.navigate(['/sensors/list']);
   }
 
   goToControl() {
-    this.router.navigate(['/control']);
+    this.router.navigate(['/control/manual']);
   }
 
   goToReports() {
-    this.router.navigate(['/reports']);
+    this.router.navigate(['/reports/list']);
   }
 
   goToAlerts() {
-    this.router.navigate(['/alerts']);
+    this.router.navigate(['/alerts/list']);
   }
 
   goToProfile() {
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/profile/view']);
   }
 
   goToSettings() {
     this.router.navigate(['/greenhouse/settings']);
   }
 
-  // Cerrar sesión
+  // LOGOUT CORREGIDO
   async logout() {
     const alert = await this.alertCtrl.create({
       header: 'Cerrar Sesión',
@@ -146,8 +176,17 @@ export class HomePage implements OnInit, OnDestroy {
         {
           text: 'Salir',
           handler: async () => {
-            await this.authService.logout();
-            this.router.navigate(['/auth/login']);
+            try {
+              console.log('Cerrando sesión...');
+              await this.authService.logout();
+              console.log('Sesión cerrada, navegando a login');
+              await this.router.navigate(['/auth/login'], { replaceUrl: true });
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error);
+              this.showToast('Error al cerrar sesión');
+              // Intentar navegar de todos modos
+              await this.router.navigate(['/auth/login'], { replaceUrl: true });
+            }
           }
         }
       ]
@@ -156,15 +195,21 @@ export class HomePage implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  // Refrescar datos (RF.11)
   async refreshData(event?: any) {
-    setTimeout(() => {
-      this.loadUserData();
+    try {
+      await this.loadUserData();
+      
       if (event) {
         event.target.complete();
       }
+      
       this.showToast('Datos actualizados');
-    }, 1000);
+    } catch (error) {
+      console.error('Error al refrescar datos:', error);
+      if (event) {
+        event.target.complete();
+      }
+    }
   }
 
   private async showToast(message: string) {

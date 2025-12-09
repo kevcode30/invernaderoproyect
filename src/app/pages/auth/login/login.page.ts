@@ -13,14 +13,9 @@ import { AuthService } from '../../../services/auth';
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage implements OnInit {
-  // Toggle entre Login y Registro
   isLoginMode = true;
-
-  // Formularios
   loginForm!: FormGroup;
   registerForm!: FormGroup;
-
-  // Estados
   showPassword = false;
   isLoading = false;
 
@@ -37,15 +32,12 @@ export class LoginPage implements OnInit {
     this.initForms();
   }
 
-  // Inicializar ambos formularios
   initForms() {
-    // Formulario de Login
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]]
     });
 
-    // Formulario de Registro (RF.2)
     this.registerForm = this.fb.group({
       displayName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
@@ -53,13 +45,11 @@ export class LoginPage implements OnInit {
     });
   }
 
-  // Cambiar entre Login y Registro
   setLoginMode(isLogin: boolean) {
     this.isLoginMode = isLogin;
     this.showPassword = false;
   }
 
-  // Getters para Login Form
   get email() {
     return this.loginForm.get('email');
   }
@@ -68,7 +58,6 @@ export class LoginPage implements OnInit {
     return this.loginForm.get('password');
   }
 
-  // Getters para Register Form
   get displayName() {
     return this.registerForm.get('displayName');
   }
@@ -81,12 +70,11 @@ export class LoginPage implements OnInit {
     return this.registerForm.get('password');
   }
 
-  // Toggle para mostrar/ocultar contraseña
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
 
-  // RF.1 - Iniciar sesión
+  // RF.1 - Iniciar sesión (CORREGIDO)
   async onLogin() {
     if (this.loginForm.invalid) {
       this.markFormGroupTouched(this.loginForm);
@@ -101,13 +89,22 @@ export class LoginPage implements OnInit {
 
     try {
       const { email, password } = this.loginForm.value;
+      
+      // Realizar el login
       const user = await this.authService.login(email, password);
 
-      await loading.dismiss();
-
       if (user) {
+        // CRÍTICO: Esperar a que el usuario esté completamente disponible
+        await this.authService.waitForUser();
+        
+        // Pequeña pausa adicional para asegurar que todo está listo
+        await new Promise(resolve => setTimeout(resolve, 150));
+        
+        await loading.dismiss();
         this.showSuccessMessage('¡Bienvenido de nuevo!');
-        await this.router.navigate(['/home']);
+        
+        // Navegar después de que todo esté listo
+        await this.router.navigate(['/home'], { replaceUrl: true });
       }
     } catch (error: any) {
       await loading.dismiss();
@@ -115,7 +112,7 @@ export class LoginPage implements OnInit {
     }
   }
 
-  // RF.2 - Registro de usuario
+  // RF.2 - Registro de usuario (CORREGIDO)
   async onRegister() {
     if (this.registerForm.invalid) {
       this.markFormGroupTouched(this.registerForm);
@@ -130,13 +127,22 @@ export class LoginPage implements OnInit {
 
     try {
       const { email, password, displayName } = this.registerForm.value;
+      
+      // Realizar el registro
       const user = await this.authService.register(email, password, displayName);
 
-      await loading.dismiss();
-
       if (user) {
+        // CRÍTICO: Esperar a que el usuario esté completamente disponible
+        await this.authService.waitForUser();
+        
+        // Pequeña pausa adicional para asegurar que todo está listo
+        await new Promise(resolve => setTimeout(resolve, 150));
+        
+        await loading.dismiss();
         this.showSuccessMessage('¡Cuenta creada exitosamente!');
-        await this.router.navigate(['/home']);
+        
+        // Navegar después de que todo esté listo
+        await this.router.navigate(['/home'], { replaceUrl: true });
       }
     } catch (error: any) {
       await loading.dismiss();
@@ -144,12 +150,10 @@ export class LoginPage implements OnInit {
     }
   }
 
-  // RF.19 - Navegar a recuperación de contraseña
   goToForgotPassword() {
     this.navCtrl.navigateForward('/auth/forgot-password');
   }
 
-  // Utilidades
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
@@ -175,7 +179,6 @@ export class LoginPage implements OnInit {
     await alert.present();
   }
 
-  // Mensajes de error para Login
   getEmailErrorMessage(): string {
     if (this.email?.hasError('required')) {
       return 'El correo electrónico es requerido';
@@ -196,7 +199,6 @@ export class LoginPage implements OnInit {
     return '';
   }
 
-  // Mensajes de error para Registro
   getRegisterEmailErrorMessage(): string {
     if (this.registerEmail?.hasError('required')) {
       return 'El correo electrónico es requerido';
